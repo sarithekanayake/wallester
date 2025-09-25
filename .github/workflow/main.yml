@@ -1,0 +1,96 @@
+name: Infrastructure & Application deployment pipeline for Task 01 and Task 02
+
+
+# Trigger the workflow on every push to the "main" branch
+on:
+  push:
+    branches: [ "main" ]
+
+# Global environment variables for AWS configuration and Terraform backend
+# Update env.S3BucketName value to an unique value to create a S3 bucket to save terraformstate files
+env:
+  AWS_REGION: ${{ vars.AWS_REGION  }}
+  S3BucketName: ${{ vars.S3BUCKETNAME  }}
+  TF_Key: ${{ vars.TF_KEY  }}
+  Dynamodb_Table: ${{ vars.DYNAMODB_TABLE  }}
+
+jobs:
+  bootstrap-aws-acc:
+    name: Infra pre-requisites 
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code from master
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Run AWS CloudFormation template
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          name: aws-acc-bootstrap
+          template: bootstrap.yaml
+          no-fail-on-empty-changeset: "1"
+          parameter-overrides: BucketName=${{ env.S3BucketName  }}
+
+  plan-task-01:
+    name: Change Preview Infra. of Task 01
+    runs-on: ubuntu-latest
+    needs: bootstrap-aws-acc
+    defaults:
+      run:
+        working-directory: task-01
+    steps:
+      - name: Checkout code from master
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+      
+      # Initialize Terraform with remote backend (S3 and DynamoDB) using backend-config overrides
+      - name: Terraform Init
+        run: terraform init -backend-config="bucket=${{ env.S3BucketName }}" -backend-config="key=${{ env.TF_Key }}" -backend-config="region=${{ env.AWS_REGION }}" -backend-config="dynamodb_table=${{ env.Dynamodb_Table }}"
+
+      # Generate Terraform plan. 
+      - name: View Terraform Plan
+        run: terraform plan
+
+  apply-task-01:
+    name: Deploying Infra. of Task 01
+    runs-on: ubuntu-latest
+    needs: [plan-task-01, bootstrap-aws-acc]
+    defaults:
+      run:
+        working-directory: task-01
+    steps:
+      - name: Checkout code from master
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+      
+      # Initialize Terraform with remote backend (S3 and DynamoDB) using backend-config overrides
+      - name: Terraform Init
+        run: terraform init -backend-config="bucket=${{ env.S3BucketName }}" -backend-config="key=${{ env.TF_Key }}" -backend-config="region=${{ env.AWS_REGION }}" -backend-config="dynamodb_table=${{ env.Dynamodb_Table }}"
+
+      # Apply Terraform.
+      - name: Run Terraform Apply
+        run: terraform apply --auto-approve
