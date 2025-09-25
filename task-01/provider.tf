@@ -1,9 +1,7 @@
-provider "aws" {
-  region = "eu-west-1"
-}
+provider "aws" {}
 
 terraform {
-  backend "local" {}
+  backend "s3" {}
   required_providers {
     aws = {
         source = "hashicorp/aws"
