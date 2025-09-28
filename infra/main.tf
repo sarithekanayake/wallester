@@ -11,7 +11,7 @@ locals {
 #------------------------
 module "vpc" {
 
-  source = "git::https://github.com/sarithekanayake/wallester-idp-modules.git//vpc?ref=v1.4.0"
+  source = "git::https://github.com/sarithekanayake/wallester-idp-modules.git//vpc?ref=v1.5.0"
 
   unique_name = var.unique_name
   eks_name = var.eks_name
@@ -28,7 +28,7 @@ module "vpc" {
 #------------------------
 module "ec2-ha" {
 
-  source = "git::https://github.com/sarithekanayake/wallester-idp-modules.git//ec2-ha?ref=v1.4.0"
+  source = "git::https://github.com/sarithekanayake/wallester-idp-modules.git//ec2-ha?ref=v1.5.0"
 
   unique_name = var.unique_name
 
@@ -51,7 +51,7 @@ module "ec2-ha" {
 #------------------------
 module "elb" {
 
-  source = "git::https://github.com/sarithekanayake/wallester-idp-modules.git//elb?ref=v1.4.0"
+  source = "git::https://github.com/sarithekanayake/wallester-idp-modules.git//elb?ref=v1.5.0"
 
   unique_name = var.unique_name
 
@@ -64,7 +64,7 @@ module "elb" {
 # EKS Module
 #------------------------
 module "eks" {
-  source = "git::https://github.com/sarithekanayake/wallester-idp-modules.git//eks?ref=v1.4.0"
+  source = "git::https://github.com/sarithekanayake/wallester-idp-modules.git//eks?ref=v1.5.0"
 
   # Cluster identification and K8s version
   unique_name = var.unique_name
@@ -92,7 +92,7 @@ module "eks" {
 # Route53 DNS and ACM (SSL) Module
 #------------------------
 module "dns" {
-  source = "git::https://github.com/sarithekanayake/wallester-idp-modules.git//dns?ref=v1.4.0"
+  source = "git::https://github.com/sarithekanayake/wallester-idp-modules.git//dns?ref=v1.5.0"
 
   domain_name = var.domain_name
 
