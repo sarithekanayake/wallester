@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hello-world-page
+data:
+  index.html: |
+    <html>
+      <head><title>Hello</title></head>
+      <body>
+        <h1>Hello World from my-k8s-deployment!</h1>
+      </body>
+    </html>
